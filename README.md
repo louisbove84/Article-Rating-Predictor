@@ -42,44 +42,32 @@ ____________________________________________________________
 
 ***Step 1: Establish Training and Testing Data***
 
-The training and testing data was compiled from articles between 2018 to 2020. The plot below shows the distribution of ages from the second data set.
+The training and testing data was compiled from articles between 2018 to 2020 and split into . In order to deal with the disparity in popular articles vs. unpopular articles the decision was made to use...
 
 <p align="center" >
-  <img src="images/model2ages.png" width="800">
+  <img src="images/.png" width="800">
 </p>
 
-Due to the uneven distribution of data the decision was make to split the final dataset into 8 different age groups (0-3, 4-7, 8-14, 15-24, 25-37, 38-47, 48-59, 60-) in order to more evenly distribute the data, as seen below.
+***Step 2: Supervised Model Results***
 
-<p align="center" >
-  <img src="Images/age_breakdown.png" width="800">
-</p>
-
-***Step 2: Base Model Results***
-
-The initial model used a combination of Convolutional, Max Pooling, Dense, and Dropout Layers with a test accuracy of ***61%***. Seen in the confusion matrix below, the most difficult ages to predict corresponded to the age ranges with the least amount of images: 4-7, 8-14, 38-47, and 48-59
+An initial model used for comparison to the following supervised models: Decision Tree, Random Forest, KNN, XGBClassifier, Gradient Boosting, and Ada Boost Classifier.
 
 <p align="center" >
   <img src="Images/cm_base_refined.png">
 </p>
 
-***Step 3: Improving CNN Model***
+***Step 3: Transfer Learning Model Results***
 
-Using a tuner function the model was incrementally improved by testing variations in the following areas. The resulting prediction accuracy increased to ***63.4%***.
-- 1st Convolutional Layer: Filters - [***32***,64,128,256] = 0.532 or 4% incr.
-- 2nd Convolutional Layer: Filters -      [32,64,***128***,256] = 0.552 or 8% incr.
-- Dense Layer: Dimensionality Output -    [64,128,512,1024,***2048***] = 0.6006 or 18% incr.
-- Dropout: Dropout Rate -                 [***0.2***, 0.4, 0.5, 0.6, 0.8] = 0.5790 or 14% incr.
+Using
 
 
 <p align="center">
   <img src="Images/TunedModelCM.png">
 </p>
 
-***Step 4: Image Augmentation***
+***Step 4: Other Models***
 
-Using image augmentation the existing combined data set was increased by rotating, shifting, flipping, and shearing images within the original data set.
-
-After running the tuned model over the augmented data set the resulting prediction accuracy increased to 65%. The corresponding confusion matrix is plotted below.
+Using
 
 <p align="center">
   <img src="Images/AugModelCM.png">
@@ -88,23 +76,26 @@ After running the tuned model over the augmented data set the resulting predicti
 ________________________________
 ## Final Results
 
-The final CNN model is a result of hyperparameter tuning of the base model and data set expansion utilizing image augmentation. The final model increased the test accuracy from ***51%*** to ***65%***. Confusion matrices from the base and final model are shown below for comparison.
+The final results from the superviesed models shows that ... model produced the best results in order to predict the popularity of an article based on its title.
+
+ Confusion matrices from the base and final model are shown below for comparison.
 
 <p align="center">
   <img src="Images/Model_compare.png">
 </p>
 
+Results from the transfer learning model shows...
 _______________________________________
 ## Tools Used
 
 ***Database:***
 
-Data Storage: AWS S3<br>
+Data Storage: CSV Files
 
 ***Python:***
 
 Data Gathering: Pandas<br>
-Data Analysis: AWS Sage Maker, Tensor Flow, Keras, Pandas, Scikit-Learn<br>
+Data Analysis: Google Colab, Tensor Flow, Keras, Pandas, Scikit-Learn<br>
 
 ***Visualization:***
 
@@ -113,5 +104,4 @@ Data Visualization: Matplotlib
 _______________________________________
 ## Future Improvements
 
-1. Incorporate video capture in order to predict age in real time utilizing webcam feed.
-2. Explore the individual age data sets and compare the prediction accuracy to the current model.
+1. I
