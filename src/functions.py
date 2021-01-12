@@ -403,7 +403,7 @@ class NLP:
             fig = plt.figure()
             ax = fig.add_subplot(111)
             cax = ax.matshow(cm)
-            plt.title('Confusion matrix of {}'.format(type(model).__name__), size = 20)
+            plt.title('Confusion matrix of {}\n'.format(type(model).__name__), size = 20)
             fig.colorbar(cax)
             plt.xlabel('Predicted', size = 15)
             plt.ylabel('True', size = 15)
