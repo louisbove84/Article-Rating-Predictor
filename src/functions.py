@@ -382,7 +382,7 @@ class NLP:
             y_test: y_test data to use for evaluation
 
         Returns:
-            rmse_dict: Dictionary with the models and their F-1 results
+            cla_results_dict: Dictionary with the models and their F-1 results
 
         """
         cla_results_dict = {}
