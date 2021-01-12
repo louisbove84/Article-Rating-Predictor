@@ -89,7 +89,7 @@ The final results from the supervised models shows that the Gradient Boosting Mo
   <img src="images/results.png">
 </p>
 
- The confusion matrix for the Gradient Boosting Model is shown below.
+ The confusion matrix for the Gradient Boosting Model is shown below. Please note that 1 indicates a popular article and 0 indicated an unpopular one.
 
 <p align="center">
   <img src="images/cm.png">
