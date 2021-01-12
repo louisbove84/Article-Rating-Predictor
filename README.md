@@ -79,7 +79,8 @@ Finally, the same full article text was used with the same regression informatio
 <p align="center">
   <img src="images/text_regression.png">
 </p>
-________________________________
+
+__________________________________________________________
 
 ## Final Results
 
@@ -94,6 +95,7 @@ The final results from the supervised models shows that the Gradient Boosting Mo
 <p align="center">
   <img src="images/cm.png">
 </p>
+
 _______________________________________
 
 ## Tools Used
