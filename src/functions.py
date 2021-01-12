@@ -1,10 +1,48 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import stats
+import string
+import nltk
+import seaborn as sns
+import random
+import requests
+from math import sqrt
+from bs4 import BeautifulSoup
+from datetime import datetime
+from os import path
+from PIL import Image
+from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
+import matplotlib.pyplot as plt
+from nltk.tokenize import sent_tokenize, word_tokenize
+from nltk.corpus import stopwords
+from nltk.stem.snowball import SnowballStemmer
+from nltk.util import ngrams
+from nltk import pos_tag
+from collections import Counter
+from sklearn.preprocessing import Normalizer, MinMaxScaler
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+from sklearn.model_selection import cross_val_score, train_test_split
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+from sklearn.ensemble import (RandomForestClassifier,
+                              GradientBoostingClassifier, AdaBoostClassifier,
+                              RandomForestRegressor, GradientBoostingRegressor,
+                              AdaBoostRegressor)
+from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
+from xgboost import XGBClassifier,  XGBRegressor
+from sklearn.metrics import accuracy_score, classification_report, roc_curve
+from sklearn import linear_model
+from sklearn import metrics
+from sklearn.dummy import DummyRegressor
+from src.functions import *
+
 class Scraper:
     """Class to scrape www.towardsdatascience.com.
 
     This class contains all the methods needed to scrape the website:
     www.towardsdatascience.com in order to obtain article information from
     2018-2020. These features include article title and text, number of claps
-    recieved, data, webpage link, and responses.
+    received, data, web page link, and responses.
 
     """
 
@@ -37,10 +75,10 @@ class Scraper:
     #Credit: https://medium.com/the-innovation/scraping-medium-with-python-beautiful-soup-3314f898bbf5
     def get_claps(self, claps_str):
 
-        """This method will take the string for number of claps an article recieves and turn it into a integer.
+        """This method will take the string for number of claps an article receives and turn it into a integer.
 
         Args:
-            claps_str: String containing the number of claps found within a webpage html
+            claps_str: String containing the number of claps found within a web page html
 
         Returns:
             claps: Integer
@@ -58,8 +96,9 @@ class Scraper:
 
         """This method will scrape the website: www.towardsdatascience.com
         in order to obtain article information from 2018-2020. These features
-        include article title, number of claps recieved, data, webpage link,
-        and responses.
+        include article title, number of claps received, data, web page link,
+        and responses. This function will also save a different CSV file for
+        every year scraped.
 
         Args:
             None
@@ -129,7 +168,6 @@ class Scraper:
             df_lst.append(medium_df)
         return df_lst
 
-    #Scrape entire article text from TowardsDataScience.com
     def get_medium_text(self, df):
 
         """This method will scrape the website: www.towardsdatascience.com
@@ -153,16 +191,16 @@ class Scraper:
         #Loop through all the popular articles from 2018-2020
         for i in range(len(df['link'])):
             try:
-            response = requests.get(df['link'].iloc[i], allow_redirects=True)
-            page = response.content
-            soup = BeautifulSoup(page, 'html.parser')
-            articles = soup.find("p").text
-            text = ''
-            for a in soup.find_all('p'):
-                    text += a.get_text()
-            text_dict[i] = text
+                response = requests.get(df['link'].iloc[i], allow_redirects=True)
+                page = response.content
+                soup = BeautifulSoup(page, 'html.parser')
+                articles = soup.find("p").text
+                text = ''
+                for a in soup.find_all('p'):
+                        text += a.get_text()
+                text_dict[i] = text
             except:
-            continue
+                continue
 
         dict_df = pd.DataFrame.from_dict(text_dict, orient='index', columns=['text'])
         df['text'] = dict_df
@@ -170,52 +208,71 @@ class Scraper:
 
 
 class NLP:
-    """Class to scrape www.towardsdatascience.com.
+    """Class used to process text data for supervised learning models
 
-    This class contains all the methods needed to scrape the website:
-    www.towardsdatascience.com in order to obtain article information from
-    2018-2020. These features include article title and text, number of claps
-    recieved, data, webpage link, and responses.
+    This class contains all the methods needed to process text data in order
+    to prepare it for classification and regression models.
 
     """
 
     def __init__(self):
         pass
 
-    # Function to generate n-grams from sentences.
     def extract_ngrams(self, text_lst, num):
+        """ Function to generate n-grams from sentences.
+
+        Args:
+            text_lst: List of strings
+            num: Number of the highest N-Grams appended to the list
+
+        Returns:
+            text_lst: List of strings now including the desired N-Grams
+
+        """
         n_grams = ngrams(nltk.word_tokenize(' '.join(text_lst)), num)
         return [ ' '.join(grams) for grams in n_grams]
 
-    #Tokenize, Lowercase, and Filter Stopwords for Column in DataFrame
     def tokenizeTagTrend(self, df_lst, min_word_len=8):
+        """This method will process raw sentence strings in preparation
+        for wordclouds completing the following:
+            -Tokenize (separate words)
+            -Lowercase
+            -Remove Stopwords
+            -Remove Punctuation
+            -Tag speech and ONLY keeping nouns
+            -Join the remaining words
+            -Run a word
+
+        Args:
+            df_lst: List of data frames from 2018-2020
+            min_word_len: Data frame containing web links to all the full text articles
+                on www.towardsdatascience.com
+
+        Returns:
+            df: Original data frame with an added column 'change' containing a numeric
+            value indicating the increased or decreased use of a certain noun over time
+
+        """
 
         word_dict = {}
         year = 2018
-
-        #Pull down stopwords and punctuation
         punctuation_ = set(string.punctuation)
         stopwords_ = set(stopwords.words('english'))
-
-        #Use Snowball Stemmer for stemming
         stemmer_snowball = SnowballStemmer('english')
 
-        #Run through all the Data Frames
         for df in df_lst:
-
-            #Modify text
-            df['tokenized'] = df['title'].apply(lambda row: word_tokenize(row)) #Tokenize (separate words)
-            df['tokenized'] = df['tokenized'].apply(lambda row: [w.lower() for w in row]) #Lowercase
-            df['tokenized'] = df['tokenized'].apply(lambda row: [w for w in row if not w in punctuation_]) #Remove Stopwords
-            df['tokenized'] = df['tokenized'].apply(lambda row: [w for w in row if not w in stopwords_]) #Remove Punctuation
+            df['tokenized'] = df['title'].apply(lambda row: word_tokenize(row))
+            df['tokenized'] = df['tokenized'].apply(lambda row: [w.lower() for w in row])
+            df['tokenized'] = df['tokenized'].apply(lambda row: [w for w in row if not w in punctuation_])
+            df['tokenized'] = df['tokenized'].apply(lambda row: [w for w in row if not w in stopwords_])
             #df['tokenized'] = df['tokenized'].apply(lambda row: [stemmer_snowball.stem(w) for w in row]) #Stemming (taking words back to the basics)
             #df['tokenized'] = df['tokenized'].apply(lambda row: extract_ngrams(row,1) + extract_ngrams(row,2)) #Add 2-Grams
-            df['tokenized'] = df['tokenized'].apply(lambda row: pos_tag(row)) #Tag speech with noun/adj/verb/etc.
-            word_lst = [a for b in df['tokenized'].tolist() for a in b] #Combine the tokenized column to a list
-            noun_word_lst = [word for (word, pos) in word_lst if (pos == 'NN' or pos == 'NNS' #Only keep nouns
+            df['tokenized'] = df['tokenized'].apply(lambda row: pos_tag(row))
+            word_lst = [a for b in df['tokenized'].tolist() for a in b]
+            noun_word_lst = [word for (word, pos) in word_lst if (pos == 'NN' or pos == 'NNS'
                                                                 or pos == 'NNP' or pos == 'NNPS')]
-            wordcloud = WordCloud(min_word_length = min_word_len).generate(' '.join(noun_word_lst)) #Wordcloud
-            word_dict[year] = pd.Series(wordcloud.words_) #Take the word frequencies
+            wordcloud = WordCloud(min_word_length = min_word_len).generate(' '.join(noun_word_lst))
+            word_dict[year] = pd.Series(wordcloud.words_)
             year += 1
 
         final_df = pd.DataFrame(word_dict).dropna()
@@ -223,42 +280,47 @@ class NLP:
 
         return final_df
 
-    #Tokenize, Lowercase, Filter Stopwords, and Tag Nouns for Column in DataFrame
-    def tokenizeTag(self, df_lst):
+    def addWordsToCloud(self, dict, lst):
+        """ Method to add specific words to wordcloud.
 
-        word_dict = {}
-        year = 2018
+        Args:
+            dict: WordCloud dictionary
+            lst: List of words to add to wordcloud
 
-        #Pull down stopwords and punctuation
-        punctuation_ = set(string.punctuation)
-        stopwords_ = set(stopwords.words('english'))
+        Returns:
+            dict: WordCloud dictionary with additional words
 
-        #Use Snowball Stemmer for stemming
-        stemmer_snowball = SnowballStemmer('english')
+        """
+        for i in lst:
+            dict[i] = np.array(list(dict.values())).mean()
+        return dict
 
-        #Run through all the Data Frames
-        for df in df_lst:
+    def popular(self, df, pct=0.35):
+        """ Method to drop rows that fall inbetween the top and bottom % of total claps.
 
-            #Modify text
-            df['tokenized'] = df['text'].apply(lambda row: word_tokenize(row)) #Tokenize (separate words)
-            df['tokenized'] = df['tokenized'].apply(lambda row: [w.lower() for w in row]) #Lowercase
-            df['tokenized'] = df['tokenized'].apply(lambda row: [w for w in row if not w in punctuation_]) #Remove Stopwords
-            df['tokenized'] = df['tokenized'].apply(lambda row: [w for w in row if not w in stopwords_]) #Remove Punctuation
-            df['tokenized'] = df['tokenized'].apply(lambda row: pos_tag(row)) #Tag speech with noun/adj/verb/etc.
-            df['tokenized'] = df['tokenized'].apply(lambda x: x[0] if (x[1] == 'NN') or (x[1] == 'NNS')
-                                                    or (x[1] == 'NNP') or (x[1] == 'NNPS') else '')
-                                                    #Only accept Nouns
+        Args:
+            df: Dataframe to filter
+            pct: Percent of total claps user wants to keep
+
+        Returns:
+            dict: DataFrame with only top and bottom percent of total claps
+
+        """
+        df['popular'] = df['claps'].sort_values().apply(lambda x: 1 if x > df['claps'].quantile(q=(1-pct))
+                                                        else (0 if x < df['claps'].quantile(q=pct) else 2))
         return df
 
-    #Create popular column for those articles in the upper and lower 35% range of 'claps' (basically 'likes')
-    def popular(self, df):
-        df['popular'] = df['claps'].sort_values().apply(lambda x: 1 if x > df['claps'].quantile(q=0.65)
-                                                        else (0 if x < df['claps'].quantile(q=0.35) else 2))
-        return df
-
-    #Vectorize bag-of-words using TFIDF
     def vectorize(self, df, col_name):
+        """ Method to vectorize a column of text
 
+        Args:
+            df: Dataframe to vectorize
+            col_name: Specify the column name to use
+
+        Returns:
+            df_tfidf: Vectorized DataFrame
+
+        """
         vectorizer = TfidfVectorizer(analyzer='word')
         vectors = vectorizer.fit_transform(df[col_name])
         feature_names = vectorizer.get_feature_names()
@@ -268,38 +330,66 @@ class NLP:
 
         return df_tfidf
 
-    #Evaluate all the regression models
-    def evaluate_reg_models(self, reg_model_lst):
+    def evaluate_reg_models(self, model_lst, X_train, y_train, X_test, y_test):
+        """ Method to evaluate different regression models with vectorized text
 
+        Args:
+            model_lst: List of models to test
+            X_train: X_train data to use for evaluation
+            y_train: y_train data to use for evaluation
+            X_test: X_test data to use for evaluation
+            y_test: y_test data to use for evaluation
+
+        Returns:
+            rmse_dict: Dictionary with the models and their RMSE results
+
+        """
         rmse_dict = {}
         r2_dict = {}
 
-        for model in models:
-            model.fit(X_train, y_train) # fit the model
-            y_pred = model.predict(X_test) # predict on the test set
+        for model in model_lst:
+            model.fit(X_train, y_train)
+            y_pred = model.predict(X_test)
             rmse = sqrt(metrics.mean_squared_error(y_test, y_pred))
-            score = metrics.r2_score(y_test, y_pred)
             print(f"The RMSE of model {type(model).__name__} is {rmse :.2f}")
             print("\n")
 
-            rmse_dict[type(model).__name__] = mse
+            rmse_dict[type(model).__name__] = rmse
 
-        #Plot the F-1 results
-        plt.bar(*zip(*rmse_dict.items()))
+        #Plot the RMSE results
+        plt.figure(num=None, figsize=(15, 5), dpi=80, facecolor='w', edgecolor='k')
+        plt.barh(*zip(*rmse_dict.items()))
+        plt.xlabel('RMSE', size = 25)
+        plt.ylabel('Model', size = 25)
+        plt.title('Regression Model Comparison', size = 25)
+        plt.xticks(size = 20)
+        plt.yticks(size = 20)
+        plt.grid()
         plt.show()
 
         return rmse_dict
 
-    #Evaluate all the classification models
-    def evaluate_cla_models(self, reg_model_lst):
+    def evaluate_cla_models(self, model_lst, X_train, y_train, X_test, y_test):
+        """ Method to evaluate different classification models with vectorized text
 
+        Args:
+            model_lst: List of models to test
+            X_train: X_train data to use for evaluation
+            y_train: y_train data to use for evaluation
+            X_test: X_test data to use for evaluation
+            y_test: y_test data to use for evaluation
+
+        Returns:
+            rmse_dict: Dictionary with the models and their F-1 results
+
+        """
         cla_results_dict = {}
 
-        for model in models:
-            model.fit(X_train, y_train) # fit the model
-            y_pred= model.predict(X_test) # predict on the test set
-            accuracy= accuracy_score(y_test, y_pred) # model accuracy
-            clf_report= classification_report(y_test, y_pred,output_dict=True) # precision and recall
+        for model in model_lst:
+            model.fit(X_train, y_train)
+            y_pred= model.predict(X_test)
+            accuracy= accuracy_score(y_test, y_pred)
+            clf_report= classification_report(y_test, y_pred,output_dict=True)
             print(f"The accuracy of model {type(model).__name__} is {accuracy:.2f}")
             print(f"The Precision of model {type(model).__name__} is {clf_report['macro avg']['precision'] :.2f}")
             print(f"The Recall of model {type(model).__name__} is {clf_report['macro avg']['recall'] :.2f}")
@@ -309,7 +399,15 @@ class NLP:
             cla_results_dict[type(model).__name__] = clf_report['macro avg']['f1-score']
 
         #Plot the F-1 results
-        plt.bar(*zip(*results_dict.items()))
+        plt.figure(num=None, figsize=(15, 5), dpi=80, facecolor='w', edgecolor='k')
+        plt.barh(*zip(*cla_results_dict.items()))
+        plt.xlabel('F1-Score', size = 25)
+        plt.ylabel('Model', size = 25)
+        plt.title('Classification Model Comparison', size = 25)
+        plt.xticks(size = 20)
+        plt.yticks(size = 20)
+        plt.xlim(0,1)
+        plt.grid()
         plt.show()
 
         return cla_results_dict
