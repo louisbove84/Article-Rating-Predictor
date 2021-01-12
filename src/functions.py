@@ -365,7 +365,6 @@ class NLP:
         plt.title('Regression Model Comparison', size = 25)
         plt.xticks(size = 20)
         plt.yticks(size = 20)
-        plt.xlim(0,1)
         plt.grid()
         plt.show()
 
