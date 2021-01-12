@@ -83,12 +83,16 @@ ________________________________
 
 ## Final Results
 
-The final results from the supervised models shows that the insufficient ... model produced the best results in order to predict the popularity of an article based on its title.
-
- Confusion matrices from the base and final model are shown below for comparison.
+The final results from the supervised models shows that the Gradient Boosting Model, used on full article text, demonstrates the best results when to predict the popularity of an article.
 
 <p align="center">
   <img src="images/results.png">
+</p>
+
+ The confusion matrix for the Gradient Boosting Model is shown below.
+
+<p align="center">
+  <img src="images/cm.png">
 </p>
 _______________________________________
 
