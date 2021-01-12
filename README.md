@@ -1,6 +1,6 @@
 ![](images/tds.png)
 
-# Medium Article Generator
+# Article Rating Predictor
 
 ## Table of Contents
 
@@ -33,8 +33,8 @@ Approximately 35,000 article titles, dates, and 'claps' (similar to 'likes') wer
 
 ### Articles used for help:
 
-> Text Classification with XLNet in Action: https://medium.com/@yingbiao/text-classification-with-xlnet-in-action-869029246f7e
-> Scraping Medium with Python & Beautiful Soup: https://medium.com/the-innovation/scraping-medium-with-python-beautiful-soup-3314f898bbf5
+* Text Classification with XLNet in Action: https://medium.com/@yingbiao/text-classification-with-xlnet-in-action-869029246f7e
+* Scraping Medium with Python & Beautiful Soup: https://medium.com/the-innovation/scraping-medium-with-python-beautiful-soup-3314f898bbf5
 ____________________________________________________________
 
 ## Supervised Learning Models:
@@ -44,7 +44,7 @@ ____________________________________________________________
 The training and testing data was compiled from articles between 2018 to 2020 and split into a data set containing the top and bottom 35% of articles based on the number of 'claps' they received. Examples from the popular and unpopular article titles are seen below:
 
 <p align="center" >
-  <img src="images/examples.png" width="800">
+  <img src="images/title_examples.png" width="800">
 </p>
 
 ***Step 2: Classification on Article Titles***
@@ -88,7 +88,7 @@ The final results from the supervised models shows that the insufficient ... mod
  Confusion matrices from the base and final model are shown below for comparison.
 
 <p align="center">
-  <img src="Images/Model_compare.png">
+  <img src="images/results.png">
 </p>
 _______________________________________
 
