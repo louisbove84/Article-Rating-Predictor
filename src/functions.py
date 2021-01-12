@@ -35,7 +35,7 @@ from sklearn import linear_model
 from sklearn import metrics
 from sklearn.dummy import DummyRegressor
 from src.functions import *
-from sklearn.metrics import plot_confusion_matrix
+from sklearn.metrics import confusion_matrix
 
 class Scraper:
     """Class to scrape www.towardsdatascience.com.
@@ -397,7 +397,17 @@ class NLP:
             print(f"The Recall of model {type(model).__name__} is {clf_report['macro avg']['recall'] :.2f}")
             print(f"The F1-Score of model {type(model).__name__} is {clf_report['macro avg']['f1-score'] :.2f}")
             print("\n")
-            plot_confusion_matrix(model, X_test, y_test)
+
+            #labels = [1,0]
+            cm = confusion_matrix(y_test, y_pred)
+            print(cm)
+            fig = plt.figure()
+            ax = fig.add_subplot(111)
+            cax = ax.matshow(cm)
+            plt.title('Confusion matrix of {}'.format(type(model).__name__), size = 20)
+            fig.colorbar(cax)
+            plt.xlabel('Predicted', size = 15)
+            plt.ylabel('True', size = 15)
             plt.show()
             cla_results_dict[type(model).__name__] = clf_report['macro avg']['f1-score']
 
